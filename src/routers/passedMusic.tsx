@@ -22,7 +22,7 @@ class Music extends React.Component {
     return () => {
       this.setState({ loading: true });
       fetchData(useCache)(
-        "https://fastly.jsdelivr.net/gh/CoolPlayLin/music-manifests@master/src/config/music.json"
+        "https://gh.xfisxf.top/https://raw.githubusercontent.com/CoolPlayLin/music-manifests/master/src/config/music.json"
       )
         .then((res) => res.json())
         .then((data) => {

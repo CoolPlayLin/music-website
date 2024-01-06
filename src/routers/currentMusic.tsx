@@ -29,7 +29,7 @@ class CurrentManifests extends React.Component {
     return () => {
       this.setState({ loading: true });
       fetchData(useCache)(
-        "https://fastly.jsdelivr.net/gh/CoolPlayLin/music-manifests@master/public/current.json"
+        "https://gh.xfisxf.top/https://raw.githubusercontent.com/CoolPlayLin/music-manifests/master/public/current.json"
       )
         .then((res) => res.json())
         .then((data) => {
