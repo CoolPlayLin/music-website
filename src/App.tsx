@@ -4,45 +4,35 @@ import CurrentManifests from "./routers/currentMusic";
 import "./App.css";
 import { Layout, Space } from "antd";
 import React from "react";
-import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import {
+  Route,
+  Link,
+  Routes,
+} from "react-router-dom";
 import About from "./routers/about";
 import Music from "./routers/passedMusic";
 
 const { Header, Content, Footer } = Layout;
-
-const router = createBrowserRouter([
-  {
-    path: "/",
-    element: <About />,
-  },
-  {
-    path: "/current",
-    element: <CurrentManifests />,
-  },
-  {
-    path: "/select",
-    element: <SelectMusic />,
-  },
-  {
-    path: "/music",
-    element: <Music />,
-  },
-]);
 
 class App extends React.Component {
   render(): ReactNode {
     return (
       <Layout>
         <Header className="bg-white" style={{ padding: 0, paddingLeft: 30 }}>
-          <Space className="text-center">
-            <a href="/">主页</a>
-            <a href="/current">当前歌单</a>
-            <a href="/select">所有方案</a>
-            <a href="/music">已过审歌曲</a>
-          </Space>
+            <Space className="text-center">
+              <Link to="/">主页</Link>
+              <Link to="/current">当前歌单</Link>
+              <Link to="/select">所有方案</Link>
+              <Link to="/music">已过审歌曲</Link>
+            </Space>
         </Header>
         <Content>
-          <RouterProvider router={router} />
+          <Routes>
+            <Route path="/" element={<About />} />
+            <Route path="/current" element={<CurrentManifests />} />
+            <Route path="/select" element={<SelectMusic />} />
+            <Route path="/music" element={<Music />} />
+          </Routes>
         </Content>
         <Footer style={{ textAlign: "center" }}>
           This website © 2024 created by CoolPlayLin
