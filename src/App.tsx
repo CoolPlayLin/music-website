@@ -1,110 +1,53 @@
-import React from "react";
-import { Pagination, List, Button, Space } from "antd";
+import { ReactNode } from "react";
+import SelectMusic from "./routers/selectMusic";
+import CurrentManifests from "./routers/currentMusic";
 import "./App.css";
+import { Layout, Space } from "antd";
+import React from "react";
+import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import About from "./routers/about";
+import Music from "./routers/passedMusic";
 
-interface Music {
-  fullLength: number;
-  songs: Song[];
-}
+const { Header, Content, Footer } = Layout;
 
-interface Song {
-  songName: string;
-  singer: string;
-  length: number;
-}
+const router = createBrowserRouter([
+  {
+    path: "/",
+    element: <About />,
+  },
+  {
+    path: "/current",
+    element: <CurrentManifests />,
+  },
+  {
+    path: "/select",
+    element: <SelectMusic />,
+  },
+  {
+    path: "/music",
+    element: <Music />,
+  },
+]);
 
 class App extends React.Component {
-  state: Readonly<{
-    music: Music[];
-    loading: boolean;
-    page: { currentPage: number; pageSize: number };
-  }> = {
-    music: [],
-    loading: true,
-    page: {
-      currentPage: 1,
-      pageSize: 20,
-    },
-  };
-  componentDidMount() {
-    fetch(
-      "https://fastly.jsdelivr.net/gh/CoolPlayLin/music-manifests@master/public/music.json"
-    )
-      .then((res) => res.json())
-      .then((data) => {
-        this.setState({ music: data, loading: false });
-      });
-  }
-  fetchCurrentManifests = (currentPage: number, pageSize: number) => {
-    return this.state.music.slice(
-      (currentPage - 1) * pageSize,
-      currentPage * pageSize
-    );
-  };
-  updateData = () => {
-    this.setState({ loading: true });
-    fetch(
-      "https://fastly.jsdelivr.net/gh/CoolPlayLin/music-manifests@master/public/music.json"
-    )
-      .then((res) => res.json())
-      .then((data) => {
-        this.setState({ music: data, loading: false });
-      });
-  };
-  render(): React.ReactNode {
+  render(): ReactNode {
     return (
-      <div className="self-center">
-        <h1 className="text-center">全部歌曲方案查看</h1>
-        <Space>
-          <Button
-            loading={this.state.loading}
-            onClick={() => {
-              this.updateData();
-            }}
-          >
-            获取最新数据
-          </Button>
-          <Pagination
-            showQuickJumper
-            showTotal={(total) => `共 ${total} 种方案`}
-            className="origin-center"
-            onChange={(currentPage: number, pageSize: number) => {
-              this.setState({ page: { currentPage, pageSize } });
-            }}
-            pageSize={this.state.page.pageSize}
-            defaultCurrent={this.state.page.currentPage}
-            total={this.state.music.length}
-          />
-        </Space>
-        <List
-          loading={this.state.loading}
-          itemLayout="vertical"
-          dataSource={this.fetchCurrentManifests(
-            this.state.page.currentPage,
-            this.state.page.pageSize
-          )}
-          renderItem={(item, index) => (
-            <List.Item>
-              <List.Item.Meta
-                title={`方案 ${
-                  index +
-                  1 +
-                  (this.state.page.currentPage - 1) * this.state.page.pageSize
-                }`}
-                description={`总时长 ${item.fullLength}s`}
-              ></List.Item.Meta>
-              <List
-                dataSource={item.songs}
-                renderItem={(song) => (
-                  <List.Item>
-                    {song.songName} | {song.singer}
-                  </List.Item>
-                )}
-              ></List>
-            </List.Item>
-          )}
-        ></List>
-      </div>
+      <Layout>
+        <Header className="bg-white" style={{ padding: 0, paddingLeft: 30 }}>
+          <Space className="text-center">
+            <a href="/">主页</a>
+            <a href="/current">当前歌单</a>
+            <a href="/select">所有方案</a>
+            <a href="/music">已过审歌曲</a>
+          </Space>
+        </Header>
+        <Content>
+          <RouterProvider router={router} />
+        </Content>
+        <Footer style={{ textAlign: "center" }}>
+          This website © 2024 created by CoolPlayLin
+        </Footer>
+      </Layout>
     );
   }
 }
