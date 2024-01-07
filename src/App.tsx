@@ -7,6 +7,7 @@ import React from "react";
 import { Route, Link, Routes } from "react-router-dom";
 import About from "./routers/about";
 import Music from "./routers/passedMusic";
+import { SpeedInsights } from "@vercel/speed-insights/react"
 
 const { Header, Content, Footer } = Layout;
 
@@ -33,6 +34,7 @@ class App extends React.Component {
         <Footer style={{ textAlign: "center" }}>
           This website © 2024 created by CoolPlayLin
         </Footer>
+        <SpeedInsights />
       </Layout>
     );
   }
