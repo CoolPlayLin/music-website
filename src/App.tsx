@@ -7,7 +7,6 @@ import React from "react";
 import { Route, Link, Routes } from "react-router-dom";
 import About from "./routers/about";
 import Music from "./routers/passedMusic";
-import { SpeedInsights } from "@vercel/speed-insights/next";
 
 const { Header, Content, Footer } = Layout;
 
@@ -15,7 +14,6 @@ class App extends React.Component {
   render(): ReactNode {
     return (
       <Layout>
-        <SpeedInsights></SpeedInsights>
         <Header className="bg-white" style={{ padding: 0, paddingLeft: 30 }}>
           <Space className="text-center">
             <Link to="/">主页</Link>
