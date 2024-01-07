@@ -4,13 +4,10 @@ import CurrentManifests from "./routers/currentMusic";
 import "./App.css";
 import { Layout, Space } from "antd";
 import React from "react";
-import {
-  Route,
-  Link,
-  Routes,
-} from "react-router-dom";
+import { Route, Link, Routes } from "react-router-dom";
 import About from "./routers/about";
 import Music from "./routers/passedMusic";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 const { Header, Content, Footer } = Layout;
 
@@ -18,13 +15,14 @@ class App extends React.Component {
   render(): ReactNode {
     return (
       <Layout>
+        <SpeedInsights></SpeedInsights>
         <Header className="bg-white" style={{ padding: 0, paddingLeft: 30 }}>
-            <Space className="text-center">
-              <Link to="/">主页</Link>
-              <Link to="/current">当前歌单</Link>
-              <Link to="/select">所有方案</Link>
-              <Link to="/music">已过审歌曲</Link>
-            </Space>
+          <Space className="text-center">
+            <Link to="/">主页</Link>
+            <Link to="/current">当前歌单</Link>
+            <Link to="/select">所有方案</Link>
+            <Link to="/music">已过审歌曲</Link>
+          </Space>
         </Header>
         <Content>
           <Routes>

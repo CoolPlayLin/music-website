@@ -1,8 +1,7 @@
 import React from "react";
 import { Pagination, List, Button, Space, notification } from "antd";
 import { fetchData } from "../../utils/web";
-import type {Music} from '../../utils/types';
-
+import type { Music } from "../../utils/types";
 
 class SelectMusic extends React.Component {
   state: Readonly<{
@@ -23,14 +22,14 @@ class SelectMusic extends React.Component {
   fetchCurrentManifests = (currentPage: number, pageSize: number) => {
     return this.state.music.slice(
       (currentPage - 1) * pageSize,
-      currentPage * pageSize
+      currentPage * pageSize,
     );
   };
   updateData = (useCache: boolean) => {
     return () => {
       this.setState({ loading: true });
       fetchData(useCache)(
-        "https://gh.xfisxf.top/https://raw.githubusercontent.com/CoolPlayLin/music-manifests/master/public/music.json"
+        "https://gh.xfisxf.top/https://raw.githubusercontent.com/CoolPlayLin/music-manifests/master/public/music.json",
       )
         .then((res) => res.json())
         .then((data) => {
@@ -82,7 +81,7 @@ class SelectMusic extends React.Component {
           itemLayout="vertical"
           dataSource={this.fetchCurrentManifests(
             this.state.page.currentPage,
-            this.state.page.pageSize
+            this.state.page.pageSize,
           )}
           renderItem={(item, index) => (
             <List.Item>
