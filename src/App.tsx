@@ -1,13 +1,13 @@
 import { ReactNode } from "react";
-import SelectMusic from "./routers/selectMusic";
-import CurrentManifests from "./routers/currentMusic";
+import SelectMusic from "./components/selectMusic";
+import CurrentManifests from "./components/currentMusic";
 import "./App.css";
 import { Layout, Space } from "antd";
 import React from "react";
 import { Route, Link, Routes } from "react-router-dom";
-import About from "./routers/about";
-import Music from "./routers/passedMusic";
-import { SpeedInsights } from "@vercel/speed-insights/react"
+import About from "./components/about";
+import Music from "./components/passedMusic";
+import { SpeedInsights } from "@vercel/speed-insights/react";
 
 const { Header, Content, Footer } = Layout;
 

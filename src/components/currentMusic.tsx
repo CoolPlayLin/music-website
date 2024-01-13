@@ -1,10 +1,17 @@
 import React from "react";
-import type { Song } from "../../utils/types";
-import { fetchData } from "../../utils/web";
 import { Button, Pagination, notification, Space, List } from "antd";
-class Music extends React.Component {
+import { fetchData } from "../../utils/web";
+import type { Song } from "../../utils/types";
+
+interface CurrentMusic {
+  date: string;
+  fullLength: number;
+  songs: Song[];
+}
+
+class CurrentManifests extends React.Component {
   state: Readonly<{
-    music: Song[];
+    music: CurrentMusic[];
     loading: boolean;
     page: { currentPage: number; pageSize: number };
   }> = {
@@ -22,21 +29,21 @@ class Music extends React.Component {
     return () => {
       this.setState({ loading: true });
       fetchData(useCache)(
-        "https://gh.xfisxf.top/https://raw.githubusercontent.com/CoolPlayLin/music-manifests/master/src/config/music.json",
+        "https://gh.xfisxf.top/https://raw.githubusercontent.com/CoolPlayLin/music-manifests/master/public/current.json",
       )
         .then((res) => res.json())
         .then((data) => {
-          if (data !== this.state.music) {
+          if (this.state.music.toString() === data.toString()) {
+            notification.warning({
+              message: "数据无变化，无需更新",
+            });
+          } else {
             if (this.state.music.length !== 0) {
               notification.success({
                 message: "数据更新成功",
               });
             }
             this.setState({ music: data });
-          } else if (this.state.music === data) {
-            notification.warning({
-              message: "数据无变化，无需更新",
-            });
           }
           this.setState({ loading: false });
         })
@@ -84,9 +91,18 @@ class Music extends React.Component {
           )}
           renderItem={(items) => (
             <List.Item>
-              <List.Item>
-                {items.songName} | {items.singer}
-              </List.Item>
+              <List.Item.Meta
+                title={items.date}
+                description={`总时长：${items.fullLength}s`}
+              ></List.Item.Meta>
+              <List
+                dataSource={items.songs}
+                renderItem={(song) => (
+                  <List.Item>
+                    {song.songName} | {song.singer}
+                  </List.Item>
+                )}
+              ></List>
             </List.Item>
           )}
         ></List>
@@ -95,4 +111,4 @@ class Music extends React.Component {
   }
 }
 
-export default Music;
+export default CurrentManifests;
