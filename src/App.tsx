@@ -4,7 +4,7 @@ import CurrentManifests from "./components/currentMusic";
 import "./App.css";
 import { Layout, Space } from "antd";
 import React from "react";
-import { Route, Link, Routes } from "react-router-dom";
+import { Link, Route, Routes } from "react-router-dom";
 import About from "./components/about";
 import Music from "./components/passedMusic";
 import { SpeedInsights } from "@vercel/speed-insights/react";
@@ -32,7 +32,10 @@ class App extends React.Component {
           </Routes>
         </Content>
         <Footer className="text-center">
-          This website © 2024 created by <a target="_blank" href="https://github.com/CoolPlayLin">CoolPlayLin</a>
+          This website © 2024 created by{" "}
+          <a target="_blank" href="https://github.com/CoolPlayLin">
+            CoolPlayLin
+          </a>
         </Footer>
         <SpeedInsights />
       </Layout>

@@ -1,6 +1,6 @@
 import React from "react";
-import type { Song } from "../../utils/types";
-import { fetchData } from "../../utils/web";
+import type { Song } from "../utils/types";
+import { fetchData } from "../utils/web";
 import { Button, Pagination, notification, Space, List } from "antd";
 
 class Music extends React.Component {
@@ -27,7 +27,7 @@ class Music extends React.Component {
     return () => {
       this.setState({ loading: true });
       fetchData(useCache)(
-        "https://gh.xfisxf.top/https://raw.githubusercontent.com/CoolPlayLin/music-manifests/master/src/config/music.json"
+        "https://gh.xfisxf.top/https://raw.githubusercontent.com/CoolPlayLin/music-manifests/master/src/config/music.json",
       )
         .then((res) => res.json())
         .then((data) => {
@@ -62,7 +62,7 @@ class Music extends React.Component {
   fetchCurrentManifests = (currentPage: number, pageSize: number) => {
     return this.state.music.slice(
       (currentPage - 1) * pageSize,
-      currentPage * pageSize
+      currentPage * pageSize,
     );
   };
   render(): React.ReactNode {
@@ -88,7 +88,7 @@ class Music extends React.Component {
           itemLayout="vertical"
           dataSource={this.fetchCurrentManifests(
             this.state.page.currentPage,
-            this.state.page.pageSize
+            this.state.page.pageSize,
           )}
           renderItem={(items) => (
             <List.Item>

@@ -1,7 +1,7 @@
 import React from "react";
 import { Button, Pagination, notification, Space, List } from "antd";
-import { fetchData } from "../../utils/web";
-import type { Song } from "../../utils/types";
+import { fetchData } from "../utils/web";
+import type { Song } from "../utils/types";
 
 interface CurrentMusic {
   date: string;
