@@ -31,8 +31,8 @@ class App extends React.Component {
             <Route path="/music" element={<Music />} />
           </Routes>
         </Content>
-        <Footer style={{ textAlign: "center" }}>
-          This website © 2024 created by CoolPlayLin
+        <Footer className="text-center">
+          This website © 2024 created by <a target="_blank" href="https://github.com/CoolPlayLin">CoolPlayLin</a>
         </Footer>
         <SpeedInsights />
       </Layout>
