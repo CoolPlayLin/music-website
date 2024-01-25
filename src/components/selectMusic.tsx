@@ -58,14 +58,38 @@ class SelectMusic extends React.Component {
   componentDidMount() {
     this.updateData(true)();
   }
+  scopeMusic = () => {
+    const manifests = this.state.music
+      .filter((manifest) => {
+        return (
+          (manifest.fullLength >= this.state.conditions.minLength ||
+            this.state.conditions.minLength === -1) &&
+          (manifest.fullLength <= this.state.conditions.maxLength ||
+            this.state.conditions.maxLength === -1)
+        );
+      })
+      .filter((manifest) => {
+        return (
+          manifest.songs.filter((value) =>
+            this.state.conditions.keyword.includes(value.songName)
+          ).length !== 0 || this.state.conditions.keyword.length === 0
+        );
+      })
+      .filter((manifest) => {
+        return (
+          manifest.songs.filter((value) =>
+            this.state.conditions.singer.includes(value.singer)
+          ).length !== 0 || this.state.conditions.singer.length === 0
+        );
+      });
+    return manifests;
+  };
   fetchCurrentManifests = (currentPage: number, pageSize: number) => {
-    return this.state.music.slice(
+    const scopedMusic = this.scopeMusic();
+    return scopedMusic.slice(
       (currentPage - 1) * pageSize,
       currentPage * pageSize
     );
-  };
-  getTotalPages = (): number => {
-    return this.state.music.length;
   };
   updateData = (useCache: boolean) => {
     return () => {
@@ -115,6 +139,37 @@ class SelectMusic extends React.Component {
       <div className="self-center">
         <h1 className="text-center">全部歌曲方案查看</h1>
         <Space direction="vertical">
+          <Button
+            disabled={
+              JSON.stringify(this.state.conditions) ===
+              JSON.stringify({
+                keyword: [],
+                singer: [],
+                maxLength: -1,
+                minLength: -1,
+              })
+            }
+            onClick={() => {
+              this.setState({
+                conditions: {
+                  keyword: [],
+                  singer: [],
+                  maxLength: -1,
+                  minLength: -1,
+                },
+                cache: {
+                  conditions: {
+                    keyword: [],
+                    singer: [],
+                    maxLength: -1,
+                    minLength: -1,
+                  },
+                },
+              });
+            }}
+          >
+            清除所有条件
+          </Button>
           <Space>
             包含歌手{" "}
             <Select
@@ -304,7 +359,7 @@ class SelectMusic extends React.Component {
             }}
             pageSize={this.state.page.pageSize}
             defaultCurrent={1}
-            total={this.getTotalPages()}
+            total={this.scopeMusic().length}
           />
         </Space>
         <List
