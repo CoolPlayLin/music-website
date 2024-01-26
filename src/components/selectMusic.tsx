@@ -12,8 +12,8 @@ import { fetchData } from "../utils/web";
 import type { Music, Song } from "../utils/types";
 
 interface Condition {
-  keyword: string[];
-  singer: string[];
+  includeSongs: string[];
+  includeSingers: string[];
   maxLength: number;
   minLength: number;
 }
@@ -34,8 +34,8 @@ class SelectMusic extends React.Component {
     this.state = {
       cache: {
         conditions: {
-          keyword: [],
-          singer: [],
+          includeSongs: [],
+          includeSingers: [],
           maxLength: -1,
           minLength: -1,
         },
@@ -48,8 +48,8 @@ class SelectMusic extends React.Component {
         pageSize: 20,
       },
       conditions: {
-        keyword: [],
-        singer: [],
+        includeSongs: [],
+        includeSingers: [],
         maxLength: -1,
         minLength: -1,
       },
@@ -71,15 +71,15 @@ class SelectMusic extends React.Component {
       .filter((manifest) => {
         return (
           manifest.songs.filter((value) =>
-            this.state.conditions.keyword.includes(value.songName)
-          ).length !== 0 || this.state.conditions.keyword.length === 0
+            this.state.conditions.includeSongs.includes(value.songName)
+          ).length !== 0 || this.state.conditions.includeSongs.length === 0
         );
       })
       .filter((manifest) => {
         return (
           manifest.songs.filter((value) =>
-            this.state.conditions.singer.includes(value.singer)
-          ).length !== 0 || this.state.conditions.singer.length === 0
+            this.state.conditions.includeSingers.includes(value.singer)
+          ).length !== 0 || this.state.conditions.includeSingers.length === 0
         );
       });
     return manifests;
@@ -94,34 +94,38 @@ class SelectMusic extends React.Component {
   updateData = (useCache: boolean) => {
     return () => {
       this.setState({ loading: true });
-      fetchData(useCache)(
-        "https://gh.xfisxf.top/https://raw.githubusercontent.com/CoolPlayLin/music-manifests/master/src/config/music.json"
-      )
-        .then((res) => res.json())
-        .then((res) => {
-          if (res.toString() === this.state.manifests) {
-            return;
-          }
-          this.setState({ manifests: res });
-        });
-      fetchData(useCache)(
-        "https://gh.xfisxf.top/https://raw.githubusercontent.com/CoolPlayLin/music-manifests/master/public/music.json"
-      )
-        .then((res) => res.json())
+      Promise.all([
+        fetchData(useCache)(
+          "https://gh.xfisxf.top/https://raw.githubusercontent.com/CoolPlayLin/music-manifests/master/src/config/music.json"
+        ),
+        fetchData(useCache)(
+          "https://gh.xfisxf.top/https://raw.githubusercontent.com/CoolPlayLin/music-manifests/master/public/music.json"
+        ),
+      ])
+        .then(async ([res1, res2]) => {
+          return {
+            manifests: await res1.json(),
+            music: await res2.json(),
+          };
+        })
         .then((data) => {
-          if (data.toString() === this.state.music.toString()) {
-            if (this.state.music.length !== 0) {
+          if (
+            JSON.stringify(data.manifests) ===
+            JSON.stringify(this.state.manifests)
+          ) {
+            if (this.state.manifests.length !== 0) {
               notification.warning({
                 message: "数据无变化，无需更新",
               });
             }
           } else {
-            if (this.state.music.length !== 0) {
+            if (this.state.manifests.length !== 0) {
               notification.success({
                 message: "数据更新成功",
               });
             }
-            this.setState({ music: data });
+            this.setState({ manifests: data.manifests });
+            this.setState({ music: data.music });
           }
           this.setState({ loading: false });
         })
@@ -143,8 +147,8 @@ class SelectMusic extends React.Component {
             disabled={
               JSON.stringify(this.state.conditions) ===
               JSON.stringify({
-                keyword: [],
-                singer: [],
+                includeSongs: [],
+                includeSingers: [],
                 maxLength: -1,
                 minLength: -1,
               })
@@ -152,15 +156,15 @@ class SelectMusic extends React.Component {
             onClick={() => {
               this.setState({
                 conditions: {
-                  keyword: [],
-                  singer: [],
+                  includeSongs: [],
+                  includeSingers: [],
                   maxLength: -1,
                   minLength: -1,
                 },
                 cache: {
                   conditions: {
-                    keyword: [],
-                    singer: [],
+                    includeSongs: [],
+                    includeSingers: [],
                     maxLength: -1,
                     minLength: -1,
                   },
@@ -173,24 +177,27 @@ class SelectMusic extends React.Component {
           <Space>
             包含歌手{" "}
             <Select
+              value={this.state.cache.conditions.includeSingers}
               mode="tags"
               options={[
                 ...new Set(
-                  this.state.manifests.map((manifest, index) => {
-                    return {
-                      value: manifest.singer,
-                      label: manifest.singer,
-                      key: `singer.${index}`,
-                    };
+                  this.state.manifests.map((item) => {
+                    return item.singer;
                   })
                 ),
-              ]}
+              ].map((singer, index) => {
+                return {
+                  value: singer,
+                  label: singer,
+                  key: `singer.${index}`,
+                };
+              })}
               onChange={(args) => {
                 this.setState({
                   cache: {
                     conditions: {
-                      singer: args,
-                      keyword: this.state.cache.conditions.keyword,
+                      includeSingers: args,
+                      includeSongs: this.state.cache.conditions.includeSongs,
                       maxLength: this.state.cache.conditions.maxLength,
                       minLength: this.state.cache.conditions.minLength,
                     },
@@ -203,16 +210,16 @@ class SelectMusic extends React.Component {
               onClick={() => {
                 this.setState({
                   conditions: {
-                    singer: this.state.cache.conditions.singer,
-                    keyword: this.state.conditions.keyword,
+                    includeSingers: this.state.cache.conditions.includeSingers,
+                    includeSongs: this.state.conditions.includeSongs,
                     maxLength: this.state.conditions.maxLength,
                     minLength: this.state.conditions.minLength,
                   },
                 });
               }}
               disabled={
-                this.state.conditions.singer.toString() ===
-                this.state.cache.conditions.singer.toString()
+                this.state.conditions.includeSingers.toString() ===
+                this.state.cache.conditions.includeSingers.toString()
               }
             >
               应用
@@ -221,6 +228,7 @@ class SelectMusic extends React.Component {
           <Space>
             包含歌曲{" "}
             <Select
+              value={this.state.cache.conditions.includeSongs}
               options={[
                 ...new Set(
                   this.state.manifests.map((manifest, index) => {
@@ -236,10 +244,11 @@ class SelectMusic extends React.Component {
                 this.setState({
                   cache: {
                     conditions: {
-                      keyword: args,
+                      includeSongs: args,
                       minLength: this.state.cache.conditions.minLength,
                       maxLength: this.state.cache.conditions.maxLength,
-                      singer: this.state.cache.conditions.singer,
+                      includeSingers:
+                        this.state.cache.conditions.includeSingers,
                     },
                   },
                 });
@@ -251,16 +260,16 @@ class SelectMusic extends React.Component {
               onClick={() => {
                 this.setState({
                   conditions: {
-                    singer: this.state.conditions.singer,
-                    keyword: this.state.cache.conditions.keyword,
+                    includeSingers: this.state.conditions.includeSingers,
+                    includeSongs: this.state.cache.conditions.includeSongs,
                     maxLength: this.state.conditions.maxLength,
                     minLength: this.state.conditions.minLength,
                   },
                 });
               }}
               disabled={
-                this.state.conditions.keyword.toString() ===
-                this.state.cache.conditions.keyword.toString()
+                this.state.conditions.includeSongs.toString() ===
+                this.state.cache.conditions.includeSongs.toString()
               }
             >
               应用
@@ -269,6 +278,7 @@ class SelectMusic extends React.Component {
           <Space>
             最大长度{" "}
             <InputNumber
+              value={this.state.cache.conditions.maxLength}
               onChange={(args) => {
                 this.setState({
                   cache: {
@@ -278,8 +288,8 @@ class SelectMusic extends React.Component {
                           ? this.state.conditions.maxLength
                           : args,
                       minLength: this.state.conditions.minLength,
-                      keyword: this.state.conditions.keyword,
-                      singer: this.state.conditions.singer,
+                      includeSongs: this.state.conditions.includeSongs,
+                      includeSingers: this.state.conditions.includeSingers,
                     },
                   },
                 });
@@ -295,8 +305,8 @@ class SelectMusic extends React.Component {
                   conditions: {
                     minLength: this.state.conditions.minLength,
                     maxLength: this.state.cache.conditions.maxLength,
-                    singer: this.state.conditions.singer,
-                    keyword: this.state.conditions.keyword,
+                    includeSingers: this.state.conditions.includeSingers,
+                    includeSongs: this.state.conditions.includeSongs,
                   },
                 });
               }}
@@ -311,6 +321,7 @@ class SelectMusic extends React.Component {
           <Space>
             最短长度{" "}
             <InputNumber
+              value={this.state.cache.conditions.minLength}
               onChange={(args) => {
                 this.setState({
                   cache: {
@@ -320,8 +331,8 @@ class SelectMusic extends React.Component {
                           ? this.state.conditions.minLength
                           : args,
                       maxLength: this.state.conditions.maxLength,
-                      singer: this.state.conditions.singer,
-                      keyword: this.state.conditions.keyword,
+                      includeSingers: this.state.conditions.includeSingers,
+                      includeSongs: this.state.conditions.includeSongs,
                     },
                   },
                 });
@@ -337,8 +348,8 @@ class SelectMusic extends React.Component {
                   conditions: {
                     minLength: this.state.cache.conditions.minLength,
                     maxLength: this.state.conditions.maxLength,
-                    singer: this.state.conditions.singer,
-                    keyword: this.state.conditions.keyword,
+                    includeSingers: this.state.conditions.includeSingers,
+                    includeSongs: this.state.conditions.includeSongs,
                   },
                 });
               }}
