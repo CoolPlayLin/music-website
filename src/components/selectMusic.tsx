@@ -13,7 +13,9 @@ import type { Music, Song } from "../utils/types";
 
 interface Condition {
   includeSongs: string[];
+  excludeSongs: string[];
   includeSingers: string[];
+  excludeSingers: string[];
   maxLength: number;
   minLength: number;
 }
@@ -35,7 +37,9 @@ class SelectMusic extends React.Component {
       cache: {
         conditions: {
           includeSongs: [],
+          excludeSongs: [],
           includeSingers: [],
+          excludeSingers: [],
           maxLength: -1,
           minLength: -1,
         },
@@ -49,7 +53,9 @@ class SelectMusic extends React.Component {
       },
       conditions: {
         includeSongs: [],
+        excludeSingers: [],
         includeSingers: [],
+        excludeSongs: [],
         maxLength: -1,
         minLength: -1,
       },
@@ -58,6 +64,58 @@ class SelectMusic extends React.Component {
   componentDidMount() {
     this.updateData(true)();
   }
+  removeConflict = () => {
+    const singerConflicts = this.state.conditions.excludeSingers.filter(
+      (singer) => {
+        return this.state.conditions.includeSingers.includes(singer);
+      }
+    );
+    const songsConflicts = this.state.conditions.excludeSongs.filter((song) => {
+      return this.state.conditions.includeSongs.includes(song);
+    });
+    if (songsConflicts.length === 0 && singerConflicts.length === 0) {
+      return;
+    }
+    notification.warning({
+      message: "存在冲突的歌曲或歌手, 这些冲突歌曲或歌手将被移除",
+    });
+    this.setState({
+      conditions: {
+        includeSingers: this.state.conditions.includeSingers.filter(
+          (singer) => !singerConflicts.includes(singer)
+        ),
+        excludeSingers: this.state.conditions.excludeSingers.filter(
+          (singer) => !singerConflicts.includes(singer)
+        ),
+        includeSongs: this.state.conditions.includeSongs.filter(
+          (song) => !songsConflicts.includes(song)
+        ),
+        excludeSongs: this.state.conditions.excludeSongs.filter(
+          (song) => !songsConflicts.includes(song)
+        ),
+        maxLength: this.state.conditions.maxLength,
+        minLength: this.state.conditions.minLength,
+      },
+      cache: {
+        conditions: {
+          includeSingers: this.state.cache.conditions.includeSingers.filter(
+            (singer) => !singerConflicts.includes(singer)
+          ),
+          excludeSingers: this.state.cache.conditions.excludeSingers.filter(
+            (singer) => !singerConflicts.includes(singer)
+          ),
+          includeSongs: this.state.cache.conditions.includeSongs.filter(
+            (song) => !songsConflicts.includes(song)
+          ),
+          excludeSongs: this.state.cache.conditions.excludeSongs.filter(
+            (song) => !songsConflicts.includes(song)
+          ),
+          maxLength: this.state.cache.conditions.maxLength,
+          minLength: this.state.cache.conditions.minLength,
+        },
+      },
+    });
+  };
   scopeMusic = () => {
     const manifests = this.state.music
       .filter((manifest) => {
@@ -70,16 +128,42 @@ class SelectMusic extends React.Component {
       })
       .filter((manifest) => {
         return (
-          manifest.songs.filter((value) =>
-            this.state.conditions.includeSongs.includes(value.songName)
-          ).length !== 0 || this.state.conditions.includeSongs.length === 0
+          this.state.conditions.includeSongs.length === 0 ||
+          manifest.songs
+            .map((song) => song.songName)
+            .filter((value) =>
+              this.state.conditions.includeSongs.includes(value)
+            ).length === this.state.conditions.includeSongs.length
         );
       })
       .filter((manifest) => {
         return (
-          manifest.songs.filter((value) =>
-            this.state.conditions.includeSingers.includes(value.singer)
-          ).length !== 0 || this.state.conditions.includeSingers.length === 0
+          this.state.conditions.includeSingers.length === 0 ||
+          manifest.songs
+            .map((songs) => songs.singer)
+            .filter((value) =>
+              this.state.conditions.includeSingers.includes(value)
+            ).length === this.state.conditions.includeSingers.length
+        );
+      })
+      .filter((manifest) => {
+        return (
+          this.state.conditions.excludeSongs.length === 0 ||
+          manifest.songs
+            .map((song) => song.songName)
+            .filter((value) =>
+              this.state.conditions.excludeSongs.includes(value)
+            ).length === 0
+        );
+      })
+      .filter((manifest) => {
+        return (
+          this.state.conditions.excludeSingers.length === 0 ||
+          manifest.songs
+            .map((songs) => songs.singer)
+            .filter((value) =>
+              this.state.conditions.excludeSingers.includes(value)
+            ).length === 0
         );
       });
     return manifests;
@@ -145,26 +229,29 @@ class SelectMusic extends React.Component {
         <Space direction="vertical">
           <Button
             disabled={
-              JSON.stringify(this.state.conditions) ===
-              JSON.stringify({
-                includeSongs: [],
-                includeSingers: [],
-                maxLength: -1,
-                minLength: -1,
-              })
+              this.state.conditions.excludeSingers.length === 0 &&
+              this.state.conditions.includeSingers.length === 0 &&
+              this.state.conditions.excludeSongs.length === 0 &&
+              this.state.conditions.includeSongs.length === 0 &&
+              this.state.conditions.maxLength === -1 &&
+              this.state.conditions.minLength === -1
             }
             onClick={() => {
               this.setState({
                 conditions: {
                   includeSongs: [],
+                  excludeSongs: [],
                   includeSingers: [],
+                  excludeSingers: [],
                   maxLength: -1,
                   minLength: -1,
                 },
                 cache: {
                   conditions: {
                     includeSongs: [],
+                    excludeSongs: [],
                     includeSingers: [],
+                    excludeSingers: [],
                     maxLength: -1,
                     minLength: -1,
                   },
@@ -197,7 +284,10 @@ class SelectMusic extends React.Component {
                   cache: {
                     conditions: {
                       includeSingers: args,
+                      excludeSingers:
+                        this.state.cache.conditions.excludeSingers,
                       includeSongs: this.state.cache.conditions.includeSongs,
+                      excludeSongs: this.state.cache.conditions.excludeSongs,
                       maxLength: this.state.cache.conditions.maxLength,
                       minLength: this.state.cache.conditions.minLength,
                     },
@@ -205,21 +295,65 @@ class SelectMusic extends React.Component {
                 });
               }}
               style={{ width: "auto" }}
-            />
-            <Button
-              onClick={() => {
+            />{" "}
+            排除歌手
+            <Select
+              value={this.state.cache.conditions.excludeSingers}
+              mode="tags"
+              options={[
+                ...new Set(
+                  this.state.manifests.map((item) => {
+                    return item.singer;
+                  })
+                ),
+              ].map((singer, index) => {
+                return {
+                  value: singer,
+                  label: singer,
+                  key: `singer.${index}`,
+                };
+              })}
+              onChange={(args) => {
                 this.setState({
-                  conditions: {
-                    includeSingers: this.state.cache.conditions.includeSingers,
-                    includeSongs: this.state.conditions.includeSongs,
-                    maxLength: this.state.conditions.maxLength,
-                    minLength: this.state.conditions.minLength,
+                  cache: {
+                    conditions: {
+                      includeSingers:
+                        this.state.cache.conditions.includeSingers,
+                      excludeSingers: args,
+                      includeSongs: this.state.cache.conditions.includeSongs,
+                      excludeSongs: this.state.cache.conditions.excludeSongs,
+                      maxLength: this.state.cache.conditions.maxLength,
+                      minLength: this.state.cache.conditions.minLength,
+                    },
                   },
                 });
               }}
+            ></Select>
+            <Button
+              onClick={() => {
+                this.setState(
+                  {
+                    conditions: {
+                      includeSingers:
+                        this.state.cache.conditions.includeSingers,
+                      excludeSingers:
+                        this.state.cache.conditions.excludeSingers,
+                      includeSongs: this.state.conditions.includeSongs,
+                      excludeSongs: this.state.conditions.excludeSongs,
+                      maxLength: this.state.conditions.maxLength,
+                      minLength: this.state.conditions.minLength,
+                    },
+                  },
+                  () => {
+                    this.removeConflict();
+                  }
+                );
+              }}
               disabled={
                 this.state.conditions.includeSingers.toString() ===
-                this.state.cache.conditions.includeSingers.toString()
+                  this.state.cache.conditions.includeSingers.toString() &&
+                this.state.conditions.excludeSingers.toString() ===
+                  this.state.cache.conditions.excludeSingers.toString()
               }
             >
               应用
@@ -245,31 +379,76 @@ class SelectMusic extends React.Component {
                   cache: {
                     conditions: {
                       includeSongs: args,
+                      excludeSongs: this.state.cache.conditions.excludeSongs,
                       minLength: this.state.cache.conditions.minLength,
                       maxLength: this.state.cache.conditions.maxLength,
                       includeSingers:
                         this.state.cache.conditions.includeSingers,
+                      excludeSingers:
+                        this.state.cache.conditions.excludeSingers,
                     },
                   },
                 });
               }}
               style={{ width: "100%" }}
               mode="tags"
-            />
-            <Button
-              onClick={() => {
+            />{" "}
+            排除歌曲
+            <Select
+              style={{ width: "100%" }}
+              mode="tags"
+              value={this.state.cache.conditions.excludeSongs}
+              options={[
+                ...new Set(
+                  this.state.manifests.map((manifest, index) => {
+                    return {
+                      value: manifest.songName,
+                      label: manifest.songName,
+                      key: `music.${index}`,
+                    };
+                  })
+                ),
+              ]}
+              onChange={(args) => {
                 this.setState({
-                  conditions: {
-                    includeSingers: this.state.conditions.includeSingers,
-                    includeSongs: this.state.cache.conditions.includeSongs,
-                    maxLength: this.state.conditions.maxLength,
-                    minLength: this.state.conditions.minLength,
+                  cache: {
+                    conditions: {
+                      includeSongs: this.state.cache.conditions.includeSongs,
+                      excludeSongs: args,
+                      minLength: this.state.cache.conditions.minLength,
+                      maxLength: this.state.cache.conditions.maxLength,
+                      includeSingers:
+                        this.state.cache.conditions.includeSingers,
+                      excludeSingers:
+                        this.state.cache.conditions.excludeSingers,
+                    },
                   },
                 });
               }}
+            ></Select>
+            <Button
+              onClick={() => {
+                this.setState(
+                  {
+                    conditions: {
+                      includeSingers: this.state.conditions.includeSingers,
+                      excludeSingers: this.state.conditions.excludeSingers,
+                      includeSongs: this.state.cache.conditions.includeSongs,
+                      excludeSongs: this.state.cache.conditions.excludeSongs,
+                      maxLength: this.state.conditions.maxLength,
+                      minLength: this.state.conditions.minLength,
+                    },
+                  },
+                  () => {
+                    this.removeConflict();
+                  }
+                );
+              }}
               disabled={
                 this.state.conditions.includeSongs.toString() ===
-                this.state.cache.conditions.includeSongs.toString()
+                  this.state.cache.conditions.includeSongs.toString() &&
+                this.state.conditions.excludeSongs.toString() ===
+                  this.state.cache.conditions.excludeSongs.toString()
               }
             >
               应用
@@ -290,6 +469,8 @@ class SelectMusic extends React.Component {
                       minLength: this.state.conditions.minLength,
                       includeSongs: this.state.conditions.includeSongs,
                       includeSingers: this.state.conditions.includeSingers,
+                      excludeSongs: this.state.conditions.excludeSongs,
+                      excludeSingers: this.state.conditions.excludeSingers,
                     },
                   },
                 });
@@ -307,6 +488,8 @@ class SelectMusic extends React.Component {
                     maxLength: this.state.cache.conditions.maxLength,
                     includeSingers: this.state.conditions.includeSingers,
                     includeSongs: this.state.conditions.includeSongs,
+                    excludeSongs: this.state.conditions.excludeSongs,
+                    excludeSingers: this.state.conditions.excludeSingers,
                   },
                 });
               }}
@@ -333,6 +516,8 @@ class SelectMusic extends React.Component {
                       maxLength: this.state.conditions.maxLength,
                       includeSingers: this.state.conditions.includeSingers,
                       includeSongs: this.state.conditions.includeSongs,
+                      excludeSongs: this.state.conditions.excludeSongs,
+                      excludeSingers: this.state.conditions.excludeSingers,
                     },
                   },
                 });
@@ -350,6 +535,8 @@ class SelectMusic extends React.Component {
                     maxLength: this.state.conditions.maxLength,
                     includeSingers: this.state.conditions.includeSingers,
                     includeSongs: this.state.conditions.includeSongs,
+                    excludeSongs: this.state.conditions.excludeSongs,
+                    excludeSingers: this.state.conditions.excludeSingers,
                   },
                 });
               }}
