@@ -77,7 +77,7 @@ class SelectMusic extends React.Component {
       return;
     }
     notification.warning({
-      message: "存在冲突的歌曲或歌手, 这些冲突歌曲或歌手将被移除",
+      message: "包含冲突的歌曲或歌手, 这些冲突歌曲或歌手将被移除",
     });
     this.setState({
       conditions: {
