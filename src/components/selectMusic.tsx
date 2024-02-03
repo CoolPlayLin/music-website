@@ -21,8 +21,8 @@ const SelectMusic: React.FC = () => {
   const [excludeSongs, setExcludeSongs] = useState<string[]>([]);
   const [includeSingers, setIncludeSingers] = useState<string[]>([]);
   const [excludeSingers, setExcludeSingers] = useState<string[]>([]);
-  const [maxLength, setMaxLength] = useState(0);
-  const [minLength, setMinLength] = useState(0);
+  const [maxLength, setMaxLength] = useState(-1);
+  const [minLength, setMinLength] = useState(-1);
   const [_includeSongs, _setIncludeSongs] = useState<string[]>([]);
   const [_excludeSongs, _setExcludeSongs] = useState<string[]>([]);
   const [_includeSingers, _setIncludeSingers] = useState<string[]>([]);
@@ -120,47 +120,38 @@ const SelectMusic: React.FC = () => {
     );
   }
   function updateData(useCache: boolean) {
-    return () => {
+    return async () => {
       setLoading(true);
-      Promise.all([
-        fetchData(useCache)(
-          "https://gh.xfisxf.top/https://raw.githubusercontent.com/CoolPlayLin/music-manifests/master/src/config/music.json"
-        ),
-        fetchData(useCache)(
-          "https://gh.xfisxf.top/https://raw.githubusercontent.com/CoolPlayLin/music-manifests/master/public/music.json"
-        ),
-      ])
-        .then(async ([res1, res2]) => {
-          return {
-            manifests: await res1.json(),
-            music: await res2.json(),
-          };
-        })
-        .then((data) => {
-          if (JSON.stringify(data.manifests) === JSON.stringify(manifests)) {
-            if (manifests.length !== 0) {
-              notification.warning({
-                message: "数据无变化，无需更新",
-              });
-            }
-          } else {
-            if (manifests.length !== 0) {
-              notification.success({
-                message: "数据更新成功",
-              });
-            }
-            setManifests(data.manifests);
-            setMusic(data.music);
+      try {
+        const data = await Promise.all([
+          fetchData(useCache)(
+            "https://gh.xfisxf.top/https://raw.githubusercontent.com/CoolPlayLin/music-manifests/master/src/config/music.json"
+          ).then((res) => res.json()),
+          fetchData(useCache)(
+            "https://gh.xfisxf.top/https://raw.githubusercontent.com/CoolPlayLin/music-manifests/master/public/music.json"
+          ).then((res) => res.json()),
+        ]);
+        if (JSON.stringify(data[0]) === JSON.stringify(manifests)) {
+          if (manifests.length !== 0) {
+            notification.warning({
+              message: "数据无变化，无需更新",
+            });
           }
-          setLoading(false);
-        })
-        .catch((error) => {
-          notification.error({
-            message: "数据更新失败",
-          });
-          console.error(error);
-          setLoading(false);
+        } else {
+          if (manifests.length !== 0) {
+            notification.success({
+              message: "数据更新成功",
+            });
+          }
+          setManifests(data[0]);
+          setMusic(data[1]);
+        }
+      } catch {
+        notification.error({
+          message: "数据更新失败，请检查网络连接",
         });
+      }
+      setLoading(false);
     };
   }
   useEffect(() => {
@@ -201,7 +192,7 @@ const SelectMusic: React.FC = () => {
           <Select
             value={_includeSingers}
             mode="tags"
-            loptions={[
+            options={[
               ...new Set(
                 manifests.map((item) => {
                   return item.singer;
@@ -223,7 +214,7 @@ const SelectMusic: React.FC = () => {
           <Select
             value={_excludeSingers}
             mode="tags"
-            loptions={[
+            options={[
               ...new Set(
                 manifests.map((item) => {
                   return item.singer;
@@ -258,7 +249,7 @@ const SelectMusic: React.FC = () => {
           包含歌曲{" "}
           <Select
             value={_includeSongs}
-            loptions={[
+            options={[
               ...new Set(
                 manifests.map((manifest, index) => {
                   return {
@@ -280,7 +271,7 @@ const SelectMusic: React.FC = () => {
             style={{ width: "100%" }}
             mode="tags"
             value={_excludeSongs}
-            loptions={[
+            options={[
               ...new Set(
                 manifests.map((manifest, index) => {
                   return {
