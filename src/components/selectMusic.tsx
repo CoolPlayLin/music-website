@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   Button,
   InputNumber,
@@ -30,7 +30,7 @@ const SelectMusic: React.FC = () => {
   const [_maxLength, _setMaxLength] = useState(-1);
   const [_minLength, _setMinLength] = useState(-1);
 
-  function removeConflict() {
+  const removeConflict = useCallback(() => {
     const singerConflicts = excludeSingers.filter((singer) => {
       return includeSingers.includes(singer);
     });
@@ -67,7 +67,16 @@ const SelectMusic: React.FC = () => {
     _setExcludeSingers(
       _excludeSingers.filter((singer) => !singerConflicts.includes(singer))
     );
-  }
+  }, [
+    excludeSingers,
+    excludeSongs,
+    includeSongs,
+    includeSingers,
+    _includeSongs,
+    _excludeSongs,
+    _includeSingers,
+    _excludeSingers,
+  ]);
   function scopeMusic() {
     const manifests = music
       .filter((manifest) => {
@@ -146,17 +155,28 @@ const SelectMusic: React.FC = () => {
           setManifests(data[0]);
           setMusic(data[1]);
         }
-      } catch {
+      } catch (error) {
         notification.error({
           message: "数据更新失败，请检查网络连接",
         });
+        console.log(error);
       }
       setLoading(false);
     };
   }
   useEffect(() => {
     updateData(true)();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+  useEffect(() => {
+    removeConflict();
+  }, [
+    includeSingers,
+    excludeSingers,
+    includeSongs,
+    excludeSongs,
+    removeConflict,
+  ]);
   return (
     <div className="self-center">
       <h1 className="text-center">全部歌曲方案查看</h1>
@@ -235,7 +255,6 @@ const SelectMusic: React.FC = () => {
             onClick={() => {
               setIncludeSingers(_includeSingers);
               setExcludeSingers(_excludeSingers);
-              removeConflict();
             }}
             disabled={
               includeSingers.toString() === _includeSingers.toString() &&
@@ -290,7 +309,6 @@ const SelectMusic: React.FC = () => {
             onClick={() => {
               setIncludeSongs(_includeSongs);
               setExcludeSongs(_excludeSongs);
-              removeConflict();
             }}
             disabled={
               includeSongs.toString() === _includeSongs.toString() &&
