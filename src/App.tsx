@@ -1,11 +1,11 @@
-import SelectMusic from "./components/selectMusic";
-import CurrentManifests from "./components/currentMusic";
+import SelectMusic from "./views/selectMusic";
+import CurrentManifests from "./views/currentMusic";
 import "./App.css";
 import { Layout, Space } from "antd";
 import React from "react";
 import { Link, Route, Routes } from "react-router-dom";
-import About from "./components/about";
-import Music from "./components/passedMusic";
+import About from "./views/about";
+import Music from "./views/passedMusic";
 import { SpeedInsights } from "@vercel/speed-insights/react";
 
 const { Header, Content, Footer } = Layout;
