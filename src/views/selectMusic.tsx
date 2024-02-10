@@ -165,18 +165,8 @@ const SelectMusic: React.FC = () => {
     };
   }
   useEffect(() => {
-    updateData(true)();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-  useEffect(() => {
-    removeConflict();
-  }, [
-    includeSingers,
-    excludeSingers,
-    includeSongs,
-    excludeSongs,
-    removeConflict,
-  ]);
+    removeConflict()
+  }, [excludeSingers, excludeSongs, removeConflict])
   return (
     <div className="self-center">
       <h1 className="text-center">全部歌曲方案查看</h1>
