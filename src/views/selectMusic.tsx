@@ -56,26 +56,26 @@ const SelectMusic: React.FC = () => {
       excludeSingers.filter((singer) => !singerConflicts.includes(singer))
     );
     _setIncludeSingers(
-      _includeSongs.filter((singer) => !singerConflicts.includes(singer))
-    );
-    _setExcludeSongs(
-      _excludeSongs.filter((song) => !songsConflicts.includes(song))
-    );
-    _setIncludeSingers(
       _includeSingers.filter((singer) => !singerConflicts.includes(singer))
+    );
+    _setIncludeSongs(
+      _includeSongs.filter((song) => !songsConflicts.includes(song))
     );
     _setExcludeSingers(
       _excludeSingers.filter((singer) => !singerConflicts.includes(singer))
     );
+    _setExcludeSongs(
+      _excludeSongs.filter((song) => !songsConflicts.includes(song))
+    );
   }, [
-    excludeSingers,
-    excludeSongs,
-    includeSongs,
-    includeSingers,
-    _includeSongs,
+    _excludeSingers,
     _excludeSongs,
     _includeSingers,
-    _excludeSingers,
+    _includeSongs,
+    excludeSingers,
+    excludeSongs,
+    includeSingers,
+    includeSongs,
   ]);
   function scopeMusic() {
     const manifests = music
@@ -128,45 +128,52 @@ const SelectMusic: React.FC = () => {
       currentPage * pageSize
     );
   }
-  function updateData(useCache: boolean) {
-    return async () => {
-      setLoading(true);
-      try {
-        const data = await Promise.all([
-          fetchData(useCache)(
-            "https://gh.xfisxf.top/https://raw.githubusercontent.com/CoolPlayLin/music-manifests/master/src/config/music.json"
-          ).then((res) => res.json()),
-          fetchData(useCache)(
-            "https://gh.xfisxf.top/https://raw.githubusercontent.com/CoolPlayLin/music-manifests/master/public/music.json"
-          ).then((res) => res.json()),
-        ]);
-        if (JSON.stringify(data[0]) === JSON.stringify(manifests)) {
-          if (manifests.length !== 0) {
-            notification.warning({
-              message: "数据无变化，无需更新",
-            });
+
+  const updateData = useCallback(
+    (useCache: boolean) => {
+      return async () => {
+        setLoading(true);
+        try {
+          const data = await Promise.all([
+            fetchData(useCache)(
+              "https://gh.xfisxf.top/https://raw.githubusercontent.com/CoolPlayLin/music-manifests/master/src/config/music.json"
+            ).then((res) => res.json()),
+            fetchData(useCache)(
+              "https://gh.xfisxf.top/https://raw.githubusercontent.com/CoolPlayLin/music-manifests/master/public/music.json"
+            ).then((res) => res.json()),
+          ]);
+          if (JSON.stringify(data[0]) === JSON.stringify(manifests)) {
+            if (manifests.length !== 0) {
+              notification.warning({
+                message: "数据无变化，无需更新",
+              });
+            }
+          } else {
+            if (manifests.length !== 0) {
+              notification.success({
+                message: "数据更新成功",
+              });
+            }
+            setManifests(data[0]);
+            setMusic(data[1]);
           }
-        } else {
-          if (manifests.length !== 0) {
-            notification.success({
-              message: "数据更新成功",
-            });
-          }
-          setManifests(data[0]);
-          setMusic(data[1]);
+        } catch (error) {
+          notification.error({
+            message: "数据更新失败，请检查网络连接",
+          });
+          console.log(error);
         }
-      } catch (error) {
-        notification.error({
-          message: "数据更新失败，请检查网络连接",
-        });
-        console.log(error);
-      }
-      setLoading(false);
-    };
-  }
+        setLoading(false);
+      };
+    },
+    [manifests]
+  );
   useEffect(() => {
-    removeConflict()
-  }, [excludeSingers, excludeSongs, removeConflict])
+    updateData(true)();
+  }, [updateData]);
+  useEffect(() => {
+    removeConflict();
+  }, [excludeSongs, excludeSingers, removeConflict]);
   return (
     <div className="self-center">
       <h1 className="text-center">全部歌曲方案查看</h1>
