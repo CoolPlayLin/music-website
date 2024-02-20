@@ -30,7 +30,7 @@ const SelectMusic: React.FC = () => {
   const [_maxLength, _setMaxLength] = useState(-1);
   const [_minLength, _setMinLength] = useState(-1);
 
-  const removeConflict = useCallback(() => {
+  const resolveConflict = useCallback(() => {
     const singerConflicts = excludeSingers.filter((singer) => {
       return includeSingers.includes(singer);
     });
@@ -172,8 +172,8 @@ const SelectMusic: React.FC = () => {
     updateData(true)();
   }, [updateData]);
   useEffect(() => {
-    removeConflict();
-  }, [excludeSongs, excludeSingers, removeConflict]);
+    resolveConflict();
+  }, [excludeSongs, excludeSingers, resolveConflict]);
   return (
     <div className="self-center">
       <h1 className="text-center">全部歌曲方案查看</h1>
